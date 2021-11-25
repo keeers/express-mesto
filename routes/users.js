@@ -4,13 +4,17 @@ const {
   getUsers, getUserById, updateUser, updateAvatar,
 } = require('../controllers/users');
 
+const { URL } = require('../middlewares/validator');
+
 router.get('/users', getUsers);
 
 router.get('/users/:userId', celebrate({
   params: Joi.object().keys({
-    userId: Joi.string().alphanum().min(2).max(24),
+    userId: Joi.string().hex(),
   }),
 }), getUserById);
+
+router.get('/users/me', getUserById);
 
 router.patch('/users/me', celebrate({
   body: Joi.object().keys({
@@ -21,7 +25,7 @@ router.patch('/users/me', celebrate({
 
 router.patch('/users/me/avatar', celebrate({
   body: Joi.object().keys({
-    avatar: Joi.string(),
+    avatar: Joi.string().required().custom(URL),
   }),
 }), updateAvatar);
 

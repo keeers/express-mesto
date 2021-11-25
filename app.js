@@ -3,14 +3,24 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const { celebrate, Joi, errors } = require('celebrate');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
 const { PORT = 3000 } = process.env;
 
 const { createUser, login } = require('./controllers/users');
 const auth = require('./middlewares/auth');
+const { URL } = require('./middlewares/validator');
 
 const app = express();
 
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+});
+
+app.use(limiter);
+app.use(helmet());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -29,7 +39,7 @@ app.post('/signup', celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
-    avatar: Joi.string(),
+    avatar: Joi.string().custom(URL),
     email: Joi.string().required().email(),
     password: Joi.string().required().min(8),
   }),
@@ -38,8 +48,10 @@ app.post('/signup', celebrate({
 app.use('/', auth, require('./routes/users'));
 app.use('/', auth, require('./routes/cards'));
 
-app.all('*', (req, res) => {
-  res.status(404).send({ message: 'Запрашиваемый ресурс не найден' });
+app.all('*', (req, res, next) => {
+  const err = new Error('Ресурс не найден');
+  err.statusCode = 404;
+  next(err);
 });
 
 app.use(errors());

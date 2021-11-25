@@ -9,11 +9,6 @@ const cardSchema = new mongoose.Schema({
   },
   link: {
     type: String,
-    validate: {
-      // eslint-disable-next-line no-useless-escape
-      validator(v) { return /[-a-zA-Z0-9@:%_\+.~#?&\/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/=]*)?/gi.test(v); },
-      message: (props) => `${props.value} данная ссылка не подходит!`,
-    },
     required: true,
   },
   owner: {

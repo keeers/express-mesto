@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 const validator = require('validator');
 const User = require('../models/user');
 
+const { JWT_SECRET = 'dev-key' } = process.env;
+
 module.exports.getUsers = (req, res, next) => {
   User.find({}).then((users) => res.send({ users })).catch(() => {
     const err = new Error('Ошибка. Что-то пошло не так');
@@ -51,7 +53,11 @@ module.exports.createUser = (req, res, next) => {
       User.create({
         name, about, avatar, email, password: hash,
       })
-        .then((user) => res.send({ data: user }))
+        .then((user) => res.send({
+          data: {
+            name: user.name, about: user.about, avatar: user.avatar, email: user.email,
+          },
+        }))
         .catch((e) => {
           if (e.name === 'ValidationError') {
             const err = new Error('Переданы некорректные данные для создания профиля');
@@ -130,11 +136,10 @@ module.exports.updateAvatar = (req, res, next) => {
 
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-
   return User.findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, 'key', { expiresIn: '7d' });
-      res.cookie('jwt', token, { httpOnly: true }).end();
+      const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
+      res.cookie('jwt', token, { httpOnly: true }).send({ message: 'Логин выполнен успешно' });
     })
     .catch((e) => {
       const err = new Error(`${e.message}`);
