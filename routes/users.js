@@ -8,13 +8,13 @@ const { URL } = require('../middlewares/validator');
 
 router.get('/users', getUsers);
 
+router.get('/users/me', getUserById);
+
 router.get('/users/:userId', celebrate({
   params: Joi.object().keys({
     userId: Joi.string().hex(),
   }),
 }), getUserById);
-
-router.get('/users/me', getUserById);
 
 router.patch('/users/me', celebrate({
   body: Joi.object().keys({

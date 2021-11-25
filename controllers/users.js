@@ -15,7 +15,7 @@ module.exports.getUsers = (req, res, next) => {
 
 module.exports.getUserById = (req, res, next) => {
   const { userId } = req.params;
-  if (userId === 'me') {
+  if (req.path === '/users/me') {
     User.findById(req.user._id).then((user) => res.send({ data: user }))
       .catch(() => {
         const err = new Error('Ошибка. Что-то пошло не так');
